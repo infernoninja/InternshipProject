@@ -22,17 +22,22 @@ if (user_in_user_pass_2fa_gottocase ==  'y'):
     time.sleep(5)
 
 ###  Very specific cases to check
-str_doc = "Document Processing Error"
-str_data = "Data Processing Error"
-str_sps = "SPS Commerce received NetSuite Error Notification"
-str_FI = "Error: FI"
+str_doc = "document processing error"
+str_data = "data processing error"
+str_sps = "sps commerce received netsuite error notification"
+str_FI = "error: fi"
 str_AP_docs = """sensitive info"""
-str_import = "Import Errors"
+str_import = "import errors"
+str_upload = "upload"
+str_mspif = "sales program item forecast"
+str_err_item = "error items"
+str_int_stat = "integration status"
 ###   Names
 name_B = """sensitive info, variable is shortened"""
 name_H = """sensitive info, variable is shortened"""
 name_M = """sensitive info, variable is shortened"""
 name_K = """sensitive info, variable is shortened"""
+name_N = """sensitive info, variable is shortened"""
 ###   Case Issues
 nsd = "NS Dashboards"
 nsop = "NS Order Processing"
@@ -51,8 +56,17 @@ r = "Request"
 e = "Enhancement"
 p = "Project"
 ###  Email checking
+### Keywords in lists
+nsop_list = ["sale prices", "sale price", "price change", "carriers", "carrier", "outbound", "sales order", "sale order", "purchase order", "purchase orders", "if", 
+"item fullfillment", "transfer orders", "transfer order" "container variance","conatianer variances", "shipping lanes", "shipping lane", "outbound shipment", "outbound"]
+nsi_list = ["item setup, item_setups", "item change"]
+nsahp_list = ["cc", "credit card", "journal"]
+nsp_list = ["container", "containers", "ocean frieght", "vendor"]
+###  Email checking
 str_email_ac = """sensitive info"""
+str_email_ap = """sensitive info"""
 ###   loop techinal stuff
+total_cases_finished_in_session = 0
 bool_while_loop = True
 fifty_count = 0
 
@@ -61,6 +75,7 @@ while(bool_while_loop) :
     #check booleans for while loop and changes
     changes_bool = False
     check_case_for_changes = False
+    changed_iss_str = False
     ### webelements are dynamic and mutable ###
     #case title string
     title_str = driver.find_element(By.CLASS_NAME, "uir-page-title-secondline").__getattribute__("text")
@@ -83,8 +98,12 @@ while(bool_while_loop) :
     before_case_issue_str = case_issue_str.get_attribute('value')
     before_case_type_str = case_type_str.get_attribute('value')
 
-    #check for very specifc cases ()   
-    if (str_doc in title_str) or (str_data in title_str) or (str_sps in title_str) or (str_FI in title_str) or (str_AP_docs in title_str) or (str_import in title_str):
+    #check for very specifc cases ()
+    if (str_mspif in title_str) or (str_err_item in title_str) or (str_int_stat in title_str):
+        driver.execute_script("window.scrollTo(0,0)")
+        next_arrow_button.click()
+        time.sleep(1.5)   
+    elif (str_doc in title_str) or (str_data in title_str) or (str_sps in title_str) or (str_FI in title_str) or (str_AP_docs in title_str) or (str_import in title_str):
 
         if (assigned_str.get_attribute('value') == ' '):
             assigned_str.send_keys(name_H)
@@ -126,9 +145,19 @@ while(bool_while_loop) :
                     requestor_str.send_keys('\ue003')
                 requestor_str.send_keys(full_name)
                 changes_bool = True
+            elif (str_email_ap in email_str) and (requestor_str.get_attribute("value") == "Anonymous Customer" or requestor_str.get_attribute("value") == " "):
+                period_index = email_str.index(".")
+                at_index = email_str.index("@")
+                first_name = email_str[0:period_index]
+                last_name = email_str[(period_index + 1):at_index]
+                full_name = first_name + " " + last_name
+                for i in range(1,19):
+                    requestor_str.send_keys('\ue003')
+                requestor_str.send_keys(full_name)
+                changes_bool = True
 
         if (assigned_str.get_attribute('value') == ' '):
-            print("who is it assigned to? h for heidi, b for brady, m for meha, or k for kelsey or enter a name")
+            print("who is it assigned to? h for h, b for b, m for m, or k for k, n for n or enter a name")
             user_in_change_asgn = input()
             if (user_in_change_asgn == "h"):
                 assigned_str.send_keys(name_H)
@@ -138,38 +167,61 @@ while(bool_while_loop) :
                 assigned_str.send_keys(name_B)
             elif (user_in_change_asgn == "k"):
                 assigned_str.send_keys(name_K)
+            elif (user_in_change_asgn == "n"):
+                assigned_str.send_keys(name_N)
             elif (user_in_change_asgn == ""):
                 pass
             else:
                 assigned_str.send_keys(user_in_change_asgn)
         
         if (case_issue_str.get_attribute('value') == ' '):
-            print("case issue? \nnsd = 'NS Dashboards'\nnsop = 'NS Order Processing'\nnsi = 'NS Inventory'\nnsp = 'NS Purchasing'\nnsahp = 'NS Acct, HR, Payroll'\nnspro = 'NS Projects'\nnswms = 'NS WMS'\nedi = 'EDI'\nv = 'Valogix'\nos = 'Other System'\nnsrp = 'NS Role/Permission'")
-            user_in_change_iss = input()
-            if (user_in_change_iss == "nsd"):
-                case_issue_str.send_keys(nsd)
-            elif (user_in_change_iss == "nsop"):
-                case_issue_str.send_keys(nsop)
-            elif (user_in_change_iss == "nsi"):
-                case_issue_str.send_keys(nsi)
-            elif (user_in_change_iss == "nsp"):
-                case_issue_str.send_keys(nsp)
-            elif (user_in_change_iss == "nsahp"):
-                case_issue_str.send_keys(nsahp)
-            elif (user_in_change_iss == "nspro"):
-                case_issue_str.send_keys(nspro)
-            elif (user_in_change_iss == "nswms"):
-                case_issue_str.send_keys(nswms)
-            elif (user_in_change_iss == "edi"):
-                case_issue_str.send_keys(edi)
-            elif (user_in_change_iss == "v"):
-                case_issue_str.send_keys(v)
-            elif (user_in_change_iss == "os"):
-                case_issue_str.send_keys(os)
-            elif (user_in_change_iss == "nsrp"):
-                case_issue_str.send_keys(nsrp)
-            else:
-                pass
+            for nsop_word in nsop_list:
+                if (nsop_word in title_str):
+                    case_issue_str.send_keys(nsop)
+                    changed_iss_str = True
+                    break
+            for nsi_word in nsi_list:
+                if (nsi_word in title_str):
+                    case_issue_str.send_keys(nsi)
+                    changed_iss_str = True
+                    break
+            for nsahp_word in nsahp_list:
+                if (nsahp_word in title_str):
+                    case_issue_str.send_keys(nsahp)
+                    changed_iss_str = True
+                    break
+            for nsp_word in nsp_list:
+                if (nsp_word in title_str):
+                    case_issue_str.send_keys(nsp)
+                    changed_iss_str = True
+                    break 
+            if not changed_iss_str:
+                print("case issue? \nnsd = 'NS Dashboards'\nnsop = 'NS Order Processing'\nnsi = 'NS Inventory'\nnsp = 'NS Purchasing'\nnsahp = 'NS Acct, HR, Payroll'\nnspro = 'NS Projects'\nnswms = 'NS WMS'\nedi = 'EDI'\nv = 'Valogix'\nos = 'Other System'\nnsrp = 'NS Role/Permission'")
+                user_in_change_iss = input()
+                if (user_in_change_iss == "nsd"):
+                    case_issue_str.send_keys(nsd)
+                elif (user_in_change_iss == "nsop"):
+                    case_issue_str.send_keys(nsop)
+                elif (user_in_change_iss == "nsi"):
+                    case_issue_str.send_keys(nsi)
+                elif (user_in_change_iss == "nsp"):
+                    case_issue_str.send_keys(nsp)
+                elif (user_in_change_iss == "nsahp"):
+                    case_issue_str.send_keys(nsahp)
+                elif (user_in_change_iss == "nspro"):
+                    case_issue_str.send_keys(nspro)
+                elif (user_in_change_iss == "nswms"):
+                    case_issue_str.send_keys(nswms)
+                elif (user_in_change_iss == "edi"):
+                    case_issue_str.send_keys(edi)
+                elif (user_in_change_iss == "v"):
+                    case_issue_str.send_keys(v)
+                elif (user_in_change_iss == "os"):
+                    case_issue_str.send_keys(os)
+                elif (user_in_change_iss == "nsrp"):
+                    case_issue_str.send_keys(nsrp)
+                else:
+                    pass
 
         if (case_type_str.get_attribute('value') == " "):
             print("case type? (incident = i, request = r, enhancement = e, project = p")
@@ -215,3 +267,6 @@ while(bool_while_loop) :
         if (user_in_fifty == "y"):
             bool_while_loop = False
         fifty_count = 0
+
+print("This session completed this many cases:")
+print((total_cases_finished_in_session * 50) + fifty_count)
